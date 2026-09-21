@@ -10,8 +10,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(
-  supabaseUrl ?? 'https://nao-configurado.supabase.co',
-  supabaseAnonKey ?? 'nao-configurado',
+  supabaseUrl || 'https://nao-configurado.supabase.co',
+  supabaseAnonKey || 'nao-configurado',
   {
     auth: {
       autoRefreshToken: true,
