@@ -13,9 +13,9 @@ export function FiltroProfissional({
   selecionado,
   onChange,
 }: FiltroProfissionalProps) {
-  const { isAdmin } = useAuth()
+  const { isAdmin, isRecepcionista } = useAuth()
 
-  if (!isAdmin) return null
+  if (!isAdmin && !isRecepcionista) return null
 
   return (
     <div className="space-y-2">

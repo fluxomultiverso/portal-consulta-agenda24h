@@ -29,7 +29,7 @@ import { ptBR } from 'date-fns/locale'
 export function AgendaDetalhePage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { usuario, isAdmin } = useAuth()
+  const { usuario, isAdmin, isRecepcionista } = useAuth()
   const [atendimento, setAtendimento] = useState<Atendimento | null>(null)
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(false)
@@ -61,7 +61,7 @@ export function AgendaDetalhePage() {
   const podeExecutarAcao = () => {
     if (!atendimento || !usuario) return false
     if (atendimento.situacao !== 'confirmado') return false
-    if (isAdmin) return true
+    if (isAdmin || isRecepcionista) return true
     return usuario.profissionalId === atendimento.profissionalId
   }
 

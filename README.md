@@ -7,17 +7,17 @@ Aplicação web de consulta e gerenciamento do Agenda 24h. Esta pasta foi incorp
 A interface já oferece:
 
 - login real com Supabase Auth, recuperação de senha e definição de senha no primeiro acesso;
-- navegação mobile-first para administrador e profissional;
+- navegação mobile-first para administrador, profissional e recepcionista;
 - visão geral com indicadores e gráfico;
 - consulta diária da agenda e detalhe do atendimento;
 - registro de atendimento concluído ou falta, condicionado à configuração do Supabase e do webhook;
 - relatórios semanais e acompanhamento de automações;
-- gestão de profissionais e serviços por rascunho de solicitação;
+- gestão administrativa em três etapas para incluir, editar ou excluir profissionais, recepcionistas e serviços;
 - estados de carregamento, vazio, erro e acesso negado.
 
 A aplicação não possui mais fallback para dados simulados. Login, empresa, papel, agenda, profissionais, indicadores, relatórios, automações e gestão dependem do Supabase real. Quando a conexão ou um contrato de leitura não estiver disponível, a interface mostra um estado de configuração ou erro sem inventar dados.
 
-A integração real de comparecimento existe no frontend, mas permanece desabilitada por padrão até a infraestrutura, autenticação, permissões e webhook serem homologados.
+As alterações da gestão nunca são gravadas diretamente pelo navegador. O portal envia um contrato autenticado ao n8n, que valida o administrador e executa a função transacional exclusiva do banco.
 
 ## Execução local
 
@@ -66,7 +66,7 @@ O provisionamento de um novo usuário deve enviar o convite com redirecionamento
 
 ## Contratos de banco instalados
 
-As migrations 013, 014 e `202609210018_contratos_leitura_portal.sql` foram validadas em transação e instaladas no Supabase self-hosted em 21/09/2026. A migration 018 deriva empresa, papel e profissional de `auth.uid()` e não aceita a empresa escolhida pelo navegador. Os contratos autenticados de contexto, profissionais, indicadores, agenda, automações, relatórios e gestão foram testados contra o banco real.
+As migrations 013, 014 e `202609210018_contratos_leitura_portal.sql` foram validadas em transação e instaladas no Supabase self-hosted em 21/09/2026. A migration 018 deriva empresa, papel e profissional de `auth.uid()` e não aceita a empresa escolhida pelo navegador. A migration `202609220019_gestao_empresa_workflow.sql` prepara o papel de recepcionista e a execução exclusiva do workflow de gestão; deve ser aplicada antes de habilitar a tela publicada.
 
 As tabelas de negócio são somente leitura para o frontend. Ações como comparecimento e solicitações de gestão são enviadas com o token da sessão para webhooks HTTPS do n8n. O workflow valida autorização e dados antes de executar qualquer alteração. Login e senha usam diretamente o Supabase Auth; senhas nunca passam pelo n8n.
 

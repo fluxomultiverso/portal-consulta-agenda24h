@@ -22,6 +22,7 @@ interface AuthContextType {
   logout: () => Promise<void>
   isAdmin: boolean
   isProfissional: boolean
+  isRecepcionista: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -32,7 +33,7 @@ function normalizarContexto(data: unknown): ContextoPortalRpc | null {
   if (
     typeof value.usuario_id !== 'string' ||
     typeof value.nome_exibicao !== 'string' ||
-    (value.papel_acesso !== 'administrador' && value.papel_acesso !== 'profissional') ||
+    (value.papel_acesso !== 'administrador' && value.papel_acesso !== 'profissional' && value.papel_acesso !== 'recepcionista') ||
     typeof value.empresa_id !== 'string' ||
     typeof value.empresa_nome !== 'string'
   ) return null
@@ -124,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     isAdmin: usuario?.perfil === 'administrador',
     isProfissional: usuario?.perfil === 'profissional',
+    isRecepcionista: usuario?.perfil === 'recepcionista',
   }), [configurado, empresa, loading, login, logout, usuario])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -4,6 +4,7 @@
 
 export interface ProfissionalGestao {
   id: string
+  usuarioId?: string
   nome: string
   email?: string
   telefone?: string
@@ -12,6 +13,17 @@ export interface ProfissionalGestao {
   corAgenda?: string
   servicoIds: string[]
   horarios: HorarioTrabalho[]
+  criadoEm?: string
+  atualizadoEm?: string
+}
+
+export interface RecepcionistaGestao {
+  id: string
+  usuarioId: string
+  nome: string
+  email: string
+  telefone?: string
+  ativo: boolean
   criadoEm?: string
   atualizadoEm?: string
 }
@@ -40,6 +52,7 @@ export interface PlanoEmpresa {
   codigo: string
   nome: string
   capacidadeProfissionais: number
+  capacidadeRecepcionistas: number
 }
 
 export interface EmpresaGestao {
@@ -49,6 +62,7 @@ export interface EmpresaGestao {
   admin?: { nome: string; email: string }
   plano: PlanoEmpresa
   profissionais: ProfissionalGestao[]
+  recepcionistas: RecepcionistaGestao[]
   servicos: ServicoGestao[]
 }
 
@@ -56,18 +70,35 @@ export interface EmpresaGestao {
 // Operações de rascunho
 // ============================================================================
 
-export type TipoOperacaoProfissional = 'inclusao' | 'remocao' | 'substituicao'
+export type TipoOperacaoProfissional = 'inclusao' | 'edicao' | 'remocao'
 
 export interface OperacaoProfissional {
   tipo: TipoOperacaoProfissional
   profissionalExistenteId?: string
   chave?: string
   dadosNovos?: DadosProfissionalNovo
-  dadosSubstituto?: DadosProfissionalNovo
+  dadosAtualizados?: DadosProfissionalNovo
+}
+
+export interface OperacaoRecepcionista {
+  tipo: 'inclusao' | 'edicao' | 'remocao'
+  recepcionistaExistenteId?: string
+  chave?: string
+  dadosNovos?: DadosRecepcionista
+  dadosAtualizados?: DadosRecepcionista
+}
+
+export interface DadosRecepcionista {
+  chave: string
+  nome: string
+  email: string
+  telefone?: string
+  ativo: boolean
 }
 
 export interface DadosProfissionalNovo {
   chave: string
+  usuarioId?: string
   nome: string
   telefone?: string
   email?: string
@@ -79,11 +110,11 @@ export interface DadosProfissionalNovo {
 }
 
 export interface OperacaoServico {
-  tipo: 'adicao' | 'remocao' | 'desvincular'
+  tipo: 'adicao' | 'edicao' | 'remocao'
   servicoExistenteId?: string
   chave?: string
   dadosNovos?: DadosServicoNovo
-  profissionalIdsAfetados?: string[]
+  dadosAtualizados?: DadosServicoNovo
 }
 
 export interface DadosServicoNovo {
@@ -100,6 +131,7 @@ export interface DadosServicoNovo {
 
 export interface RascunhoGestao {
   operacoesProfissionais: OperacaoProfissional[]
+  operacoesRecepcionistas: OperacaoRecepcionista[]
   operacoesServicos: OperacaoServico[]
   criadoEm: string
   solicitacaoId?: string
@@ -111,6 +143,10 @@ export interface ResumoOcupacao {
   proposta: number
   vagasDisponiveis: number
   acimaDoLimite: boolean
+  recepcionistasAtuais: number
+  recepcionistasPropostos: number
+  capacidadeRecepcionistas: number
+  recepcionistasAcimaDoLimite: boolean
 }
 
 // ============================================================================
@@ -118,7 +154,7 @@ export interface ResumoOcupacao {
 // ============================================================================
 
 export interface JsonAlteracaoEquipe {
-  versao: 'alteracao-equipe/1.0'
+  versao: 'gestao-empresa/2.0'
   tipo: 'ALTERACAO_EMPRESA_EXISTENTE'
   solicitacao_id: string
   solicitado_em: string
@@ -137,37 +173,47 @@ export interface JsonAlteracaoEquipe {
     limite_contratado: number
     proposta: number
   }
-  referencias_existentes: {
-    profissionais: Array<{ chave: string; id: string }>
-    servicos: Array<{ chave: string; id: string }>
-  }
-  profissionais: JsonProfissional[]
-  servicos: JsonServico[]
-  profissional_servicos: JsonVinculo[]
-  horarios_profissionais: JsonHorario[]
-  alteracoes: {
-    profissionais_incluir: string[]
-    profissionais_remover: string[]
-    profissionais_substituir: Array<{
-      profissional_antigo_chave: string
-      profissional_novo_chave: string
+  operacoes: {
+    profissionais: Array<{
+      acao: 'incluir' | 'editar' | 'remover'
+      id: string | null
+      chave: string
+      dados: JsonProfissional | null
+      servico_ids: string[]
+      horarios: JsonHorario[]
     }>
-    servicos_incluir: string[]
-    servicos_remover: string[]
-    vinculos_desvincular: Array<{
-      profissional_chave: string
-      servico_chave: string
+    recepcionistas: Array<{
+      acao: 'incluir' | 'editar' | 'remover'
+      id: string | null
+      chave: string
+      dados: JsonRecepcionista | null
+    }>
+    servicos: Array<{
+      acao: 'incluir' | 'editar' | 'remover'
+      id: string | null
+      chave: string
+      dados: JsonServico | null
     }>
   }
 }
 
 export interface JsonProfissional {
+  usuario_id?: string
   chave: string
   nome: string
   telefone: string | null
   email: string | null
   acesso_portal: boolean
   cor_agenda: string
+  ativo: boolean
+}
+
+export interface JsonRecepcionista {
+  usuario_id?: string
+  chave: string
+  nome: string
+  email: string
+  telefone: string | null
   ativo: boolean
 }
 
@@ -183,14 +229,7 @@ export interface JsonServico {
   ordem_exibicao: number
 }
 
-export interface JsonVinculo {
-  profissional_chave: string
-  servico_chave: string
-  ativo: boolean
-}
-
 export interface JsonHorario {
-  profissional_chave: string
   dia_semana: number
   inicio: string
   fim: string

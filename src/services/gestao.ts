@@ -15,7 +15,18 @@ export async function consultarEmpresaGestao(
       return { sucesso: false, erro: 'A empresa vinculada não foi encontrada.' }
     }
 
-    const empresa = data as unknown as EmpresaGestao
+    const recebida = data as unknown as EmpresaGestao
+    const capacidadePadrao = recebida.plano?.codigo === 'empresa' ? 2 : recebida.plano?.codigo === 'equipe' ? 1 : 0
+    const empresa: EmpresaGestao = {
+      ...recebida,
+      profissionais: recebida.profissionais ?? [],
+      recepcionistas: recebida.recepcionistas ?? [],
+      servicos: recebida.servicos ?? [],
+      plano: {
+        ...recebida.plano,
+        capacidadeRecepcionistas: recebida.plano?.capacidadeRecepcionistas ?? capacidadePadrao,
+      },
+    }
     if (empresa.id !== empresaId) {
       return { sucesso: false, erro: 'O vínculo autenticado não permite acessar esta empresa.' }
     }

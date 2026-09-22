@@ -1,4 +1,4 @@
-export type PerfilAcesso = 'administrador' | 'profissional'
+export type PerfilAcesso = 'administrador' | 'profissional' | 'recepcionista'
 
 export type SituacaoAtendimento =
   | 'confirmado'

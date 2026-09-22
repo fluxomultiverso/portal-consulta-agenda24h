@@ -1,0 +1,476 @@
+{
+  "name": "Agenda 24h - Gestão de equipe e serviços v1",
+  "active": false,
+  "nodes": [
+    {
+      "id": "bbbbea78-5cda-48bd-84a0-49877f335f08",
+      "name": "POST gestão",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agenda24h/gestao/v1",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://fluxomultiverso.github.io"
+        }
+      },
+      "webhookId": "7cc6c1ef-a020-4385-9283-9782cc588c4f"
+    },
+    {
+      "id": "741613b9-a263-4c7f-962c-5f42b47a975e",
+      "name": "Validar entrada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const x=$json,h=x.headers||{},b=x.body,u=/^[0-9a-f]{8}-[0-9a-f-]{27}$/i;const fail=(s,c)=>[{json:{http_status:s,body:{sucesso:false,codigo:c,mensagem:'Não foi possível aplicar as alterações.'}}}];if(!['https://fluxomultiverso.github.io','https://portalagenda24h.multiverso360.com.br'].includes(h.origin))return fail(403,'ORIGEM_NAO_PERMITIDA');if(!/^application\\/json/i.test(h['content-type']||''))return fail(415,'TIPO_NAO_SUPORTADO');if(!b||b.versao!=='gestao-empresa/2.0'||b.tipo!=='ALTERACAO_EMPRESA_EXISTENTE'||!u.test(b.solicitacao_id||'')||!u.test(b.empresa?.id||'')||!b.operacoes)return fail(400,'CONTRATO_INVALIDO');const a=h.authorization;if(typeof a!=='string'||!/^Bearer [A-Za-z0-9._~-]+$/.test(a))return fail(401,'NAO_AUTENTICADO');return [{json:{payload:b,authorization:a}}];"
+      }
+    },
+    {
+      "id": "c0ad9537-cda2-4f92-b901-f99199997174",
+      "name": "Entrada válida",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "98bdc910-a7a2-4ddc-a76d-8393449d5c90",
+              "leftValue": "={{ $json.http_status === undefined }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "29b4b0a8-771d-49ae-a2d4-449a7b01d0e3",
+      "name": "Validar token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        -100
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://supabase.multiverso360.com.br/auth/v1/user",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authorization }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 8000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "notes": "Usar Header Auth com apikey pública do Supabase."
+    },
+    {
+      "id": "7f8e77da-968b-4310-8d59-290f32655eb1",
+      "name": "Validar identidade",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -100
+      ],
+      "parameters": {
+        "jsCode": "const r=$json;if(Number(r.statusCode)!==200||!r.body?.id)return [{json:{http_status:Number(r.statusCode)===401?401:503,body:{sucesso:false,codigo:'NAO_AUTENTICADO',mensagem:'Sessão inválida.'}}}];const v=$('Validar entrada').first().json;return [{json:{usuario_id:r.body.id,payload:v.payload}}];"
+      }
+    },
+    {
+      "id": "44e7008e-7048-4558-965b-300ae17cadf3",
+      "name": "Identidade válida",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        -100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4d3580ac-7a36-42e6-8862-f2c8ad71f7c5",
+              "leftValue": "={{ $json.http_status === undefined }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f06e926d-a22f-4619-8156-8b5e5ec6ff92",
+      "name": "Preparar contas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -180
+      ],
+      "parameters": {
+        "jsCode": "const c=$json,p=JSON.parse(JSON.stringify(c.payload)),a=[];for(const o of p.operacoes.profissionais||[]){if(o.acao==='incluir'&&o.dados?.acesso_portal){if(!o.dados.email)throw new Error('E-mail obrigatório');a.push({tipo:'profissional',chave:o.chave,email:o.dados.email,nome:o.dados.nome});}}for(const o of p.operacoes.recepcionistas||[]){if(o.acao==='incluir'){a.push({tipo:'recepcionista',chave:o.chave,email:o.dados.email,nome:o.dados.nome});}}return [{json:{...c,payload:p,contas:a,tem_contas:a.length>0}}];"
+      }
+    },
+    {
+      "id": "2759c2b7-8f5d-49c1-9a0b-aa62314b8148",
+      "name": "Há contas novas",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        -180
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "52bbf831-fa95-493b-bcc7-5d208955312b",
+              "leftValue": "={{ $json.tem_contas }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c04adb32-8f89-416c-aacd-362f3b71e463",
+      "name": "Expandir contas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        -260
+      ],
+      "parameters": {
+        "jsCode": "const c=$json;return c.contas.map(a=>({json:{conta:a,body:{email:a.email,data:{nome:a.nome,papel:a.tipo,empresa_id:c.payload.empresa.id}}}}));"
+      }
+    },
+    {
+      "id": "93b44dcc-6965-4b3b-92b0-909751583bbb",
+      "name": "Criar usuários Auth",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        -260
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://supabase.multiverso360.com.br/auth/v1/invite?redirect_to=https%3A%2F%2Ffluxomultiverso.github.io%2Fportal-consulta-agenda24h%2Fdefinir-senha",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "notes": "Usar a credencial Supabase API com service role. O convite direciona à definição de senha do portal."
+    },
+    {
+      "id": "a18eb435-efa7-4763-9348-982a6485a90b",
+      "name": "Associar IDs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        -260
+      ],
+      "parameters": {
+        "jsCode": "const c=$('Preparar contas').first().json,req=$('Expandir contas').all(),res=$input.all();if(req.length!==res.length)throw new Error('Falha ao criar acessos.');for(let i=0;i<req.length;i++){const id=res[i].json.id||res[i].json.user?.id;if(!id)throw new Error('Auth não retornou usuario_id.');const a=req[i].json.conta,o=(c.payload.operacoes[a.tipo==='profissional'?'profissionais':'recepcionistas']||[]).find(x=>x.chave===a.chave);o.dados.usuario_id=id;}return [{json:c}];"
+      }
+    },
+    {
+      "id": "a2cf9ba3-6744-4745-ab89-179c6677e523",
+      "name": "Aplicar transação",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2440,
+        -80
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT public.aplicar_gestao_workflow($1::uuid,$2::uuid,$3::jsonb) AS resultado;",
+        "options": {
+          "queryReplacement": "={{ [$json.usuario_id, $json.payload.solicitacao_id, JSON.stringify($json.payload)] }}",
+          "connectionTimeout": 5
+        }
+      },
+      "notes": "Usar credencial PostgreSQL exclusiva agenda24h_gestao."
+    },
+    {
+      "id": "456457e0-633c-4b63-a9fa-3a8b1f47ae68",
+      "name": "Normalizar resultado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2660,
+        -80
+      ],
+      "parameters": {
+        "jsCode": "const r=$json.resultado;if(r?.sucesso===true)return [{json:{http_status:200,body:r}}];const s=Number(r?.http_status)||500;return [{json:{http_status:s,body:{sucesso:false,codigo:r?.codigo||'FALHA_INTERNA',mensagem:'Não foi possível aplicar as alterações.'}}}];"
+      }
+    },
+    {
+      "id": "c28557e1-aaa4-431d-b226-d19c1f6a59bf",
+      "name": "Responder JSON",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2880,
+        80
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.http_status }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "POST gestão": {
+      "main": [
+        [
+          {
+            "node": "Validar entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar entrada": {
+      "main": [
+        [
+          {
+            "node": "Entrada válida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada válida": {
+      "main": [
+        [
+          {
+            "node": "Validar token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar token": {
+      "main": [
+        [
+          {
+            "node": "Validar identidade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar identidade": {
+      "main": [
+        [
+          {
+            "node": "Identidade válida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Identidade válida": {
+      "main": [
+        [
+          {
+            "node": "Preparar contas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar contas": {
+      "main": [
+        [
+          {
+            "node": "Há contas novas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Há contas novas": {
+      "main": [
+        [
+          {
+            "node": "Expandir contas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aplicar transação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expandir contas": {
+      "main": [
+        [
+          {
+            "node": "Criar usuários Auth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar usuários Auth": {
+      "main": [
+        [
+          {
+            "node": "Associar IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Associar IDs": {
+      "main": [
+        [
+          {
+            "node": "Aplicar transação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar transação": {
+      "main": [
+        [
+          {
+            "node": "Normalizar resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar resultado": {
+      "main": [
+        [
+          {
+            "node": "Responder JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false,
+    "executionTimeout": 30,
+    "timezone": "America/Sao_Paulo"
+  },
+  "pinData": {},
+  "tags": []
+}

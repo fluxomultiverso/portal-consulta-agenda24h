@@ -1,6 +1,6 @@
 import type { ProfissionalGestao, ServicoGestao, RascunhoGestao } from '@/types/gestao'
 import { Button } from '@/components/ui/button'
-import { Trash2, Undo2 } from 'lucide-react'
+import { Pencil, Trash2, Undo2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ProfissionalCardProps {
@@ -9,6 +9,7 @@ interface ProfissionalCardProps {
   modoRascunho: boolean
   rascunho: RascunhoGestao | null
   onRemover: (id: string) => void
+  onEditar: (profissional: ProfissionalGestao) => void
   onDesfazerRemocao: (index: number) => void
 }
 
@@ -18,6 +19,7 @@ export function ProfissionalCard({
   modoRascunho,
   rascunho,
   onRemover,
+  onEditar,
   onDesfazerRemocao,
 }: ProfissionalCardProps) {
   const servicosVinculados = servicos.filter((s) =>
@@ -31,6 +33,7 @@ export function ProfissionalCard({
   const indexRemocao = rascunho?.operacoesProfissionais.findIndex(
     (op) => op.tipo === 'remocao' && op.profissionalExistenteId === profissional.id
   ) ?? -1
+  const estaEditado = rascunho?.operacoesProfissionais.some((op) => op.tipo === 'edicao' && op.profissionalExistenteId === profissional.id)
 
   return (
     <div
@@ -47,14 +50,14 @@ export function ProfissionalCard({
           )}
         </div>
         {modoRascunho && !estaMarcadoRemocao && (
-          <Button
+          <div className="flex"><Button variant="ghost" size="icon-xs" onClick={() => onEditar(profissional)} aria-label="Editar profissional"><Pencil className="size-3.5" /></Button><Button
             variant="ghost"
             size="icon-xs"
             onClick={() => onRemover(profissional.id)}
             className="text-danger-600 hover:bg-danger-50"
           >
             <Trash2 className="size-3.5" />
-          </Button>
+          </Button></div>
         )}
         {estaMarcadoRemocao && indexRemocao >= 0 && (
           <Button
@@ -83,6 +86,7 @@ export function ProfissionalCard({
               ))}
             </div>
           )}
+          {estaEditado && <p className="text-xs font-medium text-primary-600">Alteração pendente</p>}
 
           <p className="text-xs text-muted-foreground">
             {profissional.horarios.length} dia(s) de trabalho

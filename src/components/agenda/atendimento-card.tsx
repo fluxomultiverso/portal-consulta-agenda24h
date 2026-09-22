@@ -44,7 +44,7 @@ const situacaoConfig: Record<string, { label: string; className: string }> = {
 }
 
 export function AtendimentoCard({ atendimento, onAtualizar }: AtendimentoCardProps) {
-  const { usuario, isAdmin } = useAuth()
+  const { usuario, isAdmin, isRecepcionista } = useAuth()
   const [confirmando, setConfirmando] = useState<RespostaComparecimento | null>(null)
   const [processando, setProcessando] = useState(false)
   const [erro, setErro] = useState('')
@@ -61,7 +61,7 @@ export function AtendimentoCard({ atendimento, onAtualizar }: AtendimentoCardPro
   const podeAgir = (() => {
     if (atendimento.situacao !== 'confirmado') return false
     if (!usuario) return false
-    if (isAdmin) return true
+    if (isAdmin || isRecepcionista) return true
     return usuario.profissionalId === atendimento.profissionalId
   })()
 

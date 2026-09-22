@@ -1,6 +1,6 @@
 import type { ServicoGestao, ProfissionalGestao, RascunhoGestao } from '@/types/gestao'
 import { Button } from '@/components/ui/button'
-import { Trash2, Undo2, Link } from 'lucide-react'
+import { Pencil, Trash2, Undo2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ServicoCardProps {
@@ -9,7 +9,7 @@ interface ServicoCardProps {
   modoRascunho: boolean
   rascunho: RascunhoGestao | null
   onRemover: (id: string) => void
-  onDesvincular: (servicoId: string, profissionalIds: string[]) => void
+  onEditar: (servico: ServicoGestao) => void
   onDesfazer: (index: number) => void
 }
 
@@ -19,7 +19,7 @@ export function ServicoCard({
   modoRascunho,
   rascunho,
   onRemover,
-  onDesvincular,
+  onEditar,
   onDesfazer,
 }: ServicoCardProps) {
   const profissionaisVinculados = profissionais.filter(
@@ -34,12 +34,7 @@ export function ServicoCard({
     (op) => op.tipo === 'remocao' && op.servicoExistenteId === servico.id
   ) ?? -1
 
-  const handleDesvincular = () => {
-    const ids = profissionaisVinculados.map((p) => p.id)
-    if (ids.length > 0) {
-      onDesvincular(servico.id, ids)
-    }
-  }
+  const estaEditado = rascunho?.operacoesServicos.some((op) => op.tipo === 'edicao' && op.servicoExistenteId === servico.id)
 
   return (
     <div
@@ -60,16 +55,7 @@ export function ServicoCard({
         </div>
         {modoRascunho && !estaMarcadoRemocao && (
           <div className="flex gap-1">
-            {profissionaisVinculados.length > 0 && (
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={handleDesvincular}
-                title="Desvincular de todos os profissionais"
-              >
-                <Link className="size-3.5" />
-              </Button>
-            )}
+            <Button variant="ghost" size="icon-xs" onClick={() => onEditar(servico)} title="Editar serviço"><Pencil className="size-3.5" /></Button>
             <Button
               variant="ghost"
               size="icon-xs"
@@ -103,6 +89,7 @@ export function ServicoCard({
         </div>
       ) : (
         <div>
+          {estaEditado && <p className="mb-2 text-xs font-medium text-primary-600">Alteração pendente</p>}
           {profissionaisVinculados.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {profissionaisVinculados.map((p) => (

@@ -1,12 +1,11 @@
 import { supabase } from '@/lib/supabase'
+import type { JsonAlteracaoEquipe } from '@/types/gestao'
 
 const webhookUrl = import.meta.env.VITE_GESTAO_WEBHOOK_URL
 const habilitado = import.meta.env.VITE_GESTAO_HABILITADA === 'true'
 
 export interface EnviarSolicitacaoParams {
-  jsonSolicitacao: string
-  nomeSolicitante: string
-  nomeEmpresa: string
+  solicitacao: JsonAlteracaoEquipe
 }
 
 function webhookValido(): boolean {
@@ -45,18 +44,17 @@ export async function enviarSolicitacaoGestao(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${data.session.access_token}`,
       },
-      body: JSON.stringify({
-        solicitante: params.nomeSolicitante,
-        empresa: params.nomeEmpresa,
-        solicitacao: JSON.parse(params.jsonSolicitacao),
-      }),
+      body: JSON.stringify(params.solicitacao),
     })
 
     const result: unknown = await response.json().catch(() => null)
     if (response.ok && result && typeof result === 'object' && 'sucesso' in result && result.sucesso === true) {
       return { sucesso: true, mensagem: 'Solicitação enviada com sucesso.' }
     }
-    return { sucesso: false, mensagem: 'O n8n não confirmou o recebimento da solicitação.' }
+    const mensagem = result && typeof result === 'object' && 'mensagem' in result && typeof result.mensagem === 'string'
+      ? result.mensagem
+      : 'O workflow não confirmou a aplicação das alterações.'
+    return { sucesso: false, mensagem }
   } catch {
     return { sucesso: false, mensagem: 'Não foi possível enviar a solicitação. Tente novamente.' }
   } finally {
