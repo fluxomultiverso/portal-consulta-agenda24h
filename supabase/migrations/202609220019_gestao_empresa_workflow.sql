@@ -11,7 +11,7 @@ do $$ declare c text; begin
   if c is not null then execute format('alter table public.membros_empresa drop constraint %I',c); end if;
 end $$;
 alter table public.membros_empresa add constraint membros_empresa_papel_profissional_check check (
- (papel_acesso='administrador' and profissional_id is null) or
+ papel_acesso='administrador' or
  (papel_acesso='recepcionista' and profissional_id is null) or
  (papel_acesso='profissional' and profissional_id is not null)
 );
