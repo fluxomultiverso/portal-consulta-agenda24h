@@ -9,6 +9,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
+import { BrandLogo } from '@/components/layout/brand-logo'
+import { SiteFooter } from '@/components/layout/site-footer'
 
 const navItems = [
   { to: '/visao-geral', label: 'Visão geral', icon: LayoutDashboard, adminOnly: true },
@@ -33,8 +35,9 @@ export function AppLayout() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-white">
-        <div className="flex h-14 items-center justify-between px-4">
+        <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2 min-w-0">
+            <BrandLogo variant="header" />
             <h1 className="text-base font-semibold text-foreground truncate">
               {empresa?.nome ?? 'Agenda 24h'}
             </h1>
@@ -56,12 +59,15 @@ export function AppLayout() {
         </div>
       </header>
 
-      {/* Conteúdo principal */}
-      <main className="pb-20 md:pb-4">
-        <div className="mx-auto max-w-5xl px-4 py-4">
-          <Outlet />
-        </div>
-      </main>
+      <div className="flex min-h-[calc(100vh-4rem)] flex-col md:ml-56">
+        {/* Conteúdo principal */}
+        <main className="flex-1 pb-20 md:pb-4">
+          <div className="mx-auto max-w-5xl px-4 py-4">
+            <Outlet />
+          </div>
+        </main>
+        <SiteFooter className="pb-24 md:pb-5" />
+      </div>
 
       {/* Navegação inferior mobile */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 border-t bg-white md:hidden safe-bottom">
@@ -87,7 +93,7 @@ export function AppLayout() {
       </nav>
 
       {/* Sidebar desktop */}
-      <aside className="hidden md:flex fixed left-0 top-14 bottom-0 w-56 flex-col border-r bg-white p-4">
+      <aside className="fixed bottom-0 left-0 top-16 hidden w-56 flex-col border-r bg-white p-4 md:flex">
         <nav className="flex flex-col gap-1">
           {itemsVisiveis.map((item) => (
             <NavLink
@@ -118,13 +124,6 @@ export function AppLayout() {
           </div>
         </div>
       </aside>
-
-      {/* Ajuste do conteúdo para sidebar desktop */}
-      <style>{`
-        @media (min-width: 768px) {
-          main { margin-left: 14rem; }
-        }
-      `}</style>
     </div>
   )
 }

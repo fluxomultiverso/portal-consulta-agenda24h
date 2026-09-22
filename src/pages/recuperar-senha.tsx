@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import { ArrowLeft, Calendar, CheckCircle2, Loader2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AuthPageShell } from '@/components/layout/auth-page-shell'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 
 export function RecuperarSenhaPage() {
@@ -31,17 +32,8 @@ export function RecuperarSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center rounded-2xl bg-primary-100 p-3">
-            <Calendar className="size-8 text-primary-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Recuperar senha</h1>
-          <p className="text-sm text-muted-foreground">Enviaremos um link para o e-mail do seu acesso.</p>
-        </div>
-
-        <div className="rounded-xl border bg-white p-6">
+    <AuthPageShell title="Recuperar senha" description="Enviaremos um link para o e-mail do seu acesso.">
+      <div className="rounded-xl border bg-white p-6 shadow-sm">
           {enviado ? (
             <div className="space-y-4 text-center">
               <CheckCircle2 className="mx-auto size-10 text-success-600" />
@@ -83,8 +75,7 @@ export function RecuperarSenhaPage() {
               </Link>
             </form>
           )}
-        </div>
       </div>
-    </div>
+    </AuthPageShell>
   )
 }

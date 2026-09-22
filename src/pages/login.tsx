@@ -2,7 +2,8 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
-import { Calendar, AlertTriangle, Loader2 } from 'lucide-react'
+import { AlertTriangle, Loader2 } from 'lucide-react'
+import { AuthPageShell } from '@/components/layout/auth-page-shell'
 
 export function LoginPage() {
   const { usuario, login, configurado, loading } = useAuth()
@@ -31,17 +32,8 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center rounded-2xl bg-primary-100 p-3">
-            <Calendar className="size-8 text-primary-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Agenda 24h</h1>
-          <p className="text-sm text-muted-foreground">Portal de consulta e gerenciamento</p>
-        </div>
-
-        <form onSubmit={handleEntrar} className="rounded-xl border bg-white p-6 space-y-4">
+    <AuthPageShell title="Agenda 24h" description="Portal de consulta e gerenciamento">
+      <form onSubmit={handleEntrar} className="space-y-4 rounded-xl border bg-white p-6 shadow-sm">
           {!configurado && (
             <div className="rounded-lg bg-warning-50 border border-warning-500/20 p-3 flex items-start gap-2">
               <AlertTriangle className="size-4 text-warning-600 shrink-0 mt-0.5" />
@@ -64,8 +56,7 @@ export function LoginPage() {
             {entrando && <Loader2 className="size-4 animate-spin" />}
             {entrando ? 'Entrando...' : 'Entrar'}
           </Button>
-        </form>
-      </div>
-    </div>
+      </form>
+    </AuthPageShell>
   )
 }

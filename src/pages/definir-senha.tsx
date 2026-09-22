@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { AlertTriangle, Calendar, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AuthPageShell } from '@/components/layout/auth-page-shell'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 
 interface DefinirSenhaPageProps {
@@ -66,17 +67,8 @@ export function DefinirSenhaPage({ modo }: DefinirSenhaPageProps) {
   const titulo = modo === 'primeiro-acesso' ? 'Definir senha' : 'Criar nova senha'
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center rounded-2xl bg-primary-100 p-3">
-            <Calendar className="size-8 text-primary-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">{titulo}</h1>
-          <p className="text-sm text-muted-foreground">Use pelo menos 8 caracteres.</p>
-        </div>
-
-        <div className="rounded-xl border bg-white p-6">
+    <AuthPageShell title={titulo} description="Use pelo menos 8 caracteres.">
+      <div className="rounded-xl border bg-white p-6 shadow-sm">
           {validando ? (
             <div className="flex flex-col items-center gap-3 py-6" role="status">
               <Loader2 className="size-8 animate-spin text-primary-600" />
@@ -126,8 +118,7 @@ export function DefinirSenhaPage({ modo }: DefinirSenhaPageProps) {
               </Button>
             </form>
           )}
-        </div>
       </div>
-    </div>
+    </AuthPageShell>
   )
 }
