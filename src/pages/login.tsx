@@ -4,6 +4,11 @@ import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { AuthPageShell } from '@/components/layout/auth-page-shell'
+import {
+  getTentativasRestantes,
+  registrarTentativa,
+  verificarBloqueio,
+} from '@/lib/rate-limit'
 
 export function LoginPage() {
   const { usuario, login, configurado, loading } = useAuth()
@@ -12,6 +17,19 @@ export function LoginPage() {
   const [senha, setSenha] = useState('')
   const [entrando, setEntrando] = useState(false)
   const [erro, setErro] = useState('')
+  const [segundosBloqueio, setSegundosBloqueio] = useState(() => verificarBloqueio().segundosRestantes)
+
+  useEffect(() => {
+    if (segundosBloqueio <= 0) return
+
+    const intervalo = window.setInterval(() => {
+      const bloqueio = verificarBloqueio()
+      setSegundosBloqueio(bloqueio.segundosRestantes)
+      if (!bloqueio.bloqueado) setErro('')
+    }, 1000)
+
+    return () => window.clearInterval(intervalo)
+  }, [segundosBloqueio])
 
   useEffect(() => {
     if (usuario) navigate(usuario.perfil === 'administrador' ? '/visao-geral' : '/agenda', { replace: true })
@@ -20,14 +38,31 @@ export function LoginPage() {
   const handleEntrar = async (event: FormEvent) => {
     event.preventDefault()
     if (!email.trim() || !senha || entrando || !configurado) return
+
+    const bloqueioAtual = verificarBloqueio()
+    if (bloqueioAtual.bloqueado) {
+      setSegundosBloqueio(bloqueioAtual.segundosRestantes)
+      setErro(`Muitas tentativas. Aguarde ${bloqueioAtual.segundosRestantes} segundos para tentar novamente.`)
+      return
+    }
+
     setEntrando(true)
     setErro('')
     const resultado = await login(email.trim(), senha)
     setEntrando(false)
     if (!resultado.sucesso) {
-      setErro(resultado.mensagem ?? 'Não foi possível entrar.')
+      registrarTentativa(false)
+      const novoBloqueio = verificarBloqueio()
+      const restantes = getTentativasRestantes()
+      setSegundosBloqueio(novoBloqueio.segundosRestantes)
+      setErro(
+        novoBloqueio.bloqueado
+          ? `Muitas tentativas. Aguarde ${novoBloqueio.segundosRestantes} segundos para tentar novamente.`
+          : `${resultado.mensagem ?? 'Não foi possível entrar.'} ${restantes === 1 ? 'Resta 1 tentativa.' : `Restam ${restantes} tentativas.`}`,
+      )
       return
     }
+    registrarTentativa(true)
     navigate(resultado.perfil === 'administrador' ? '/visao-geral' : '/agenda', { replace: true })
   }
 
@@ -52,9 +87,9 @@ export function LoginPage() {
             <input id="senha" type="password" autoComplete="current-password" value={senha} onChange={(event) => setSenha(event.target.value)} className="w-full rounded-lg border px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" required />
           </div>
           {erro && <p className="text-sm text-danger-600" role="alert">{erro}</p>}
-          <Button type="submit" className="w-full h-10" disabled={!configurado || loading || entrando || !email.trim() || !senha}>
+          <Button type="submit" className="w-full h-10" disabled={!configurado || loading || entrando || segundosBloqueio > 0 || !email.trim() || !senha}>
             {entrando && <Loader2 className="size-4 animate-spin" />}
-            {entrando ? 'Entrando...' : 'Entrar'}
+            {entrando ? 'Entrando...' : segundosBloqueio > 0 ? `Tente novamente em ${segundosBloqueio}s` : 'Entrar'}
           </Button>
       </form>
     </AuthPageShell>
