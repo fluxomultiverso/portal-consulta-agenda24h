@@ -64,9 +64,9 @@ No Supabase Auth, inclua nas URLs de redirecionamento permitidas:
 
 O provisionamento de um novo usuário deve enviar o convite com redirecionamento para `/definir-senha`. A solicitação feita em `/recuperar-senha` direciona automaticamente para `/redefinir-senha`. Os links são validados pelo Supabase antes que o formulário aceite a nova senha.
 
-## Próxima etapa
+## Contratos de banco instalados
 
-A migration `202609210018_contratos_leitura_portal.sql` prepara os contratos protegidos usados pelo frontend. Ela deriva empresa, papel e profissional de `auth.uid()` e não aceita a empresa escolhida pelo navegador. As migrations 013 e 014 também precisam estar revisadas e instaladas para indicadores e relatórios.
+As migrations 013, 014 e `202609210018_contratos_leitura_portal.sql` foram validadas em transação e instaladas no Supabase self-hosted em 21/09/2026. A migration 018 deriva empresa, papel e profissional de `auth.uid()` e não aceita a empresa escolhida pelo navegador. Os contratos autenticados de contexto, profissionais, indicadores, agenda, automações, relatórios e gestão foram testados contra o banco real.
 
 As tabelas de negócio são somente leitura para o frontend. Ações como comparecimento e solicitações de gestão são enviadas com o token da sessão para webhooks HTTPS do n8n. O workflow valida autorização e dados antes de executar qualquer alteração. Login e senha usam diretamente o Supabase Auth; senhas nunca passam pelo n8n.
 
