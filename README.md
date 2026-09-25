@@ -56,8 +56,8 @@ Os e-mails de convite, primeiro acesso e recuperação são enviados pelo servi�
 
 No Supabase Auth, inclua nas URLs de redirecionamento permitidas:
 
-- `https://SEU-USUARIO.github.io/portal-consulta-agenda24h/definir-senha`
-- `https://SEU-USUARIO.github.io/portal-consulta-agenda24h/redefinir-senha`
+- `https://consulta.multiverso360.com.br/definir-senha`
+- `https://consulta.multiverso360.com.br/redefinir-senha`
 - `https://portalagenda24h.multiverso360.com.br/definir-senha`
 - `https://portalagenda24h.multiverso360.com.br/redefinir-senha`
 - os equivalentes do endereço local usado no desenvolvimento.
