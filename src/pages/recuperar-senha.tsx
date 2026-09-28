@@ -6,7 +6,6 @@ import { AuthPageShell } from '@/components/layout/auth-page-shell'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 
 export function RecuperarSenhaPage() {
-  const recuperacaoHabilitada = import.meta.env.VITE_RECUPERACAO_SENHA_HABILITADA === 'true'
   const [email, setEmail] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [enviado, setEnviado] = useState(false)
@@ -14,7 +13,7 @@ export function RecuperarSenhaPage() {
 
   const handleEnviar = async (event: FormEvent) => {
     event.preventDefault()
-    if (!recuperacaoHabilitada || !email.trim() || enviando || !isSupabaseConfigured()) return
+    if (!email.trim() || enviando || !isSupabaseConfigured()) return
     setEnviando(true)
     setErro('')
 
@@ -32,17 +31,7 @@ export function RecuperarSenhaPage() {
   return (
     <AuthPageShell title="Recuperar senha" description="Enviaremos um link para o e-mail do seu acesso.">
       <div className="rounded-xl border bg-white p-6 shadow-sm">
-          {!recuperacaoHabilitada ? (
-            <div className="space-y-4 text-center">
-              <h2 className="font-semibold text-foreground">Recuperação temporariamente indisponível</h2>
-              <p className="text-sm text-muted-foreground">
-                Estamos corrigindo o destino dos links de recuperação. Entre em contato com o suporte para recuperar seu acesso.
-              </p>
-              <Button asChild variant="outline" className="w-full h-10">
-                <Link to="/login">Voltar ao login</Link>
-              </Button>
-            </div>
-          ) : enviado ? (
+          {enviado ? (
             <div className="space-y-4 text-center">
               <CheckCircle2 className="mx-auto size-10 text-success-600" />
               <div className="space-y-1">

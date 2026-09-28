@@ -71,7 +71,7 @@ GOTRUE_MAILER_TEMPLATES_INVITE: https://consulta.multiverso360.com.br/auth-email
 GOTRUE_MAILER_TEMPLATES_RECOVERY: https://consulta.multiverso360.com.br/auth-email-templates/recovery.html
 ```
 
-Recrie somente o serviço Auth depois de publicar os arquivos. Confira que as duas URLs retornam HTML com `{{ .TokenHash }}` e teste um convite e uma recuperação novos. Se o Auth não conseguir carregar um modelo, ele usa o modelo padrão e volta a expor o endereço do serviço no link do e-mail. Habilite `VITE_RECUPERACAO_SENHA_HABILITADA=true` na publicação somente depois desse teste.
+Recrie somente o serviço Auth depois de publicar os arquivos. Confira que as duas URLs retornam HTML com `{{ .TokenHash }}` e teste um convite e uma recuperação novos. Se o Auth não conseguir carregar um modelo, ele usa o modelo padrão e volta a expor o endereço do serviço no link do e-mail.
 
 ## Contratos de banco instalados
 
