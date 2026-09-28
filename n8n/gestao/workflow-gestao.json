@@ -216,7 +216,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://supabase.multiverso360.com.br/auth/v1/invite?redirect_to=https%3A%2F%2Ffluxomultiverso.github.io%2Fportal-consulta-agenda24h%2Fdefinir-senha",
+        "url": "https://supabase.multiverso360.com.br/auth/v1/invite?redirect_to=https%3A%2F%2Fconsulta.multiverso360.com.br%2Fdefinir-senha",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "supabaseApi",
         "sendBody": true,

@@ -39,6 +39,7 @@ jobs:
           VITE_COMPARECIMENTO_WEBHOOK_URL: ${{ vars.VITE_COMPARECIMENTO_WEBHOOK_URL }}
           VITE_GESTAO_HABILITADA: ${{ vars.VITE_GESTAO_HABILITADA }}
           VITE_GESTAO_WEBHOOK_URL: ${{ vars.VITE_GESTAO_WEBHOOK_URL }}
+          VITE_RECUPERACAO_SENHA_HABILITADA: ${{ vars.VITE_RECUPERACAO_SENHA_HABILITADA }}
 
       - name: Preparar rotas diretas
         shell: bash

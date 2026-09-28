@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,8 @@ interface DefinirSenhaPageProps {
 export function DefinirSenhaPage({ modo }: DefinirSenhaPageProps) {
   const navigate = useNavigate()
   const configurado = isSupabaseConfigured()
+  const [tokenHash] = useState(() => new URLSearchParams(window.location.search).get('token_hash'))
+  const verificacao = useRef<Promise<boolean> | null>(null)
   const [validando, setValidando] = useState(configurado)
   const [sessaoValida, setSessaoValida] = useState(false)
   const [senha, setSenha] = useState('')
@@ -25,6 +27,24 @@ export function DefinirSenhaPage({ modo }: DefinirSenhaPageProps) {
     if (!configurado) return
 
     let ativo = true
+    if (tokenHash) {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('token_hash')
+      url.searchParams.delete('type')
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
+
+      verificacao.current ??= supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: modo === 'primeiro-acesso' ? 'invite' : 'recovery',
+      }).then(({ data, error }) => !error && Boolean(data.session))
+      void verificacao.current.then((valida) => {
+        if (!ativo) return
+        setSessaoValida(valida)
+        setValidando(false)
+      })
+      return () => { ativo = false }
+    }
+
     const verificar = async () => {
       const { data } = await supabase.auth.getSession()
       if (!ativo) return
@@ -43,7 +63,7 @@ export function DefinirSenhaPage({ modo }: DefinirSenhaPageProps) {
       ativo = false
       listener.subscription.unsubscribe()
     }
-  }, [configurado])
+  }, [configurado, modo, tokenHash])
 
   const senhaValida = senha.length >= 8
   const senhasIguais = senha === confirmacao

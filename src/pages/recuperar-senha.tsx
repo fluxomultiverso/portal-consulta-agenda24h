@@ -6,6 +6,7 @@ import { AuthPageShell } from '@/components/layout/auth-page-shell'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 
 export function RecuperarSenhaPage() {
+  const recuperacaoHabilitada = import.meta.env.VITE_RECUPERACAO_SENHA_HABILITADA === 'true'
   const [email, setEmail] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [enviado, setEnviado] = useState(false)
@@ -13,14 +14,11 @@ export function RecuperarSenhaPage() {
 
   const handleEnviar = async (event: FormEvent) => {
     event.preventDefault()
-    if (!email.trim() || enviando || !isSupabaseConfigured()) return
+    if (!recuperacaoHabilitada || !email.trim() || enviando || !isSupabaseConfigured()) return
     setEnviando(true)
     setErro('')
 
-    const redirectTo = new URL(
-      `${import.meta.env.BASE_URL}redefinir-senha`,
-      window.location.origin,
-    ).toString()
+    const redirectTo = new URL('/redefinir-senha', window.location.origin).toString()
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo })
     setEnviando(false)
 
@@ -34,7 +32,17 @@ export function RecuperarSenhaPage() {
   return (
     <AuthPageShell title="Recuperar senha" description="Enviaremos um link para o e-mail do seu acesso.">
       <div className="rounded-xl border bg-white p-6 shadow-sm">
-          {enviado ? (
+          {!recuperacaoHabilitada ? (
+            <div className="space-y-4 text-center">
+              <h2 className="font-semibold text-foreground">Recuperação temporariamente indisponível</h2>
+              <p className="text-sm text-muted-foreground">
+                Estamos corrigindo o destino dos links de recuperação. Entre em contato com o suporte para recuperar seu acesso.
+              </p>
+              <Button asChild variant="outline" className="w-full h-10">
+                <Link to="/login">Voltar ao login</Link>
+              </Button>
+            </div>
+          ) : enviado ? (
             <div className="space-y-4 text-center">
               <CheckCircle2 className="mx-auto size-10 text-success-600" />
               <div className="space-y-1">
@@ -63,7 +71,7 @@ export function RecuperarSenhaPage() {
               </div>
               {erro && <p className="text-sm text-danger-600" role="alert">{erro}</p>}
               {!isSupabaseConfigured() && (
-                <p className="text-sm text-warning-600">A conexão com o Supabase ainda não está configurada.</p>
+                <p className="text-sm text-warning-600">O serviço de autenticação está indisponível.</p>
               )}
               <Button type="submit" className="w-full h-10" disabled={!email.trim() || enviando || !isSupabaseConfigured()}>
                 {enviando && <Loader2 className="size-4 animate-spin" />}

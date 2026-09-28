@@ -62,7 +62,16 @@ No Supabase Auth, inclua nas URLs de redirecionamento permitidas:
 - `https://portalagenda24h.multiverso360.com.br/redefinir-senha`
 - os equivalentes do endereço local usado no desenvolvimento.
 
-O provisionamento de um novo usuário deve enviar o convite com redirecionamento para `/definir-senha`. A solicitação feita em `/recuperar-senha` direciona automaticamente para `/redefinir-senha`. Os links são validados pelo Supabase antes que o formulário aceite a nova senha.
+O provisionamento de um novo usuário deve enviar o convite com redirecionamento para `/definir-senha`. A solicitação feita em `/recuperar-senha` direciona automaticamente para `/redefinir-senha`. As páginas validam o `token_hash` com o Supabase Auth antes de aceitar a nova senha, sem navegar para o endereço do Auth.
+
+Para que o próprio e-mail aponte diretamente ao subdomínio público, configure os modelos **Invite** e **Recovery** no Supabase self-hosted. Os arquivos publicados pelo portal são `public/auth-email-templates/invite.html` e `public/auth-email-templates/recovery.html`. No serviço `auth` do Compose, defina:
+
+```yaml
+GOTRUE_MAILER_TEMPLATES_INVITE: https://consulta.multiverso360.com.br/auth-email-templates/invite.html
+GOTRUE_MAILER_TEMPLATES_RECOVERY: https://consulta.multiverso360.com.br/auth-email-templates/recovery.html
+```
+
+Recrie somente o serviço Auth depois de publicar os arquivos. Confira que as duas URLs retornam HTML com `{{ .TokenHash }}` e teste um convite e uma recuperação novos. Se o Auth não conseguir carregar um modelo, ele usa o modelo padrão e volta a expor o endereço do serviço no link do e-mail. Habilite `VITE_RECUPERACAO_SENHA_HABILITADA=true` na publicação somente depois desse teste.
 
 ## Contratos de banco instalados
 
